@@ -16,7 +16,7 @@ def truncate_text(tokens, max_length=511):
 def process_files(directory, file_extension='.txt'):
     """
     Processes all files in the given directory with the specified file extension.
-    Truncates the file content to fit the maximum token length and writes it back.
+    Creates new files with truncated content.
     """
     for filename in os.listdir(directory):
         if filename.endswith(file_extension):
@@ -29,9 +29,13 @@ def process_files(directory, file_extension='.txt'):
             truncated_tokens = truncate_text(tokens)
             truncated_content = ' '.join(truncated_tokens)
 
-            with open(file_path, 'w') as file:
+            # Creating a new filename for the truncated file
+            new_filename = filename.rsplit('.', 1)[0] + '_truncated.txt'
+            new_file_path = os.path.join(directory, new_filename)
+
+            with open(new_file_path, 'w') as file:
                 file.write(truncated_content)
-            print(f"Processed and truncated file: {filename}")
+            print(f"Processed and created truncated file: {new_filename}")
 
 # Get the directory where the script is located
 directory = os.path.dirname(os.path.abspath(__file__))
