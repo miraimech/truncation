@@ -1,57 +1,40 @@
 import os
+import sys
 
-def process_inter_dealer_brokers_section(broker, index, base_file_path):
-    file_name = f"{os.path.splitext(base_file_path)[0]}_interDealerBrokers_{index}.txt"
-    print(f"Attempting to save file: {file_name}")  # Debugging print
-    try:
-        with open(file_name, 'w') as file:
-            file.write(str(broker))
-        print(f"File saved: {file_name}")  # Confirmation print
-    except Exception as e:
-        print(f"Error saving file {file_name}: {e}")  # Error print
-def process_file(file_path):
-    data = {
-        "releaseDate": "",
-        "title": "",
-        "numDealers": {},
-        "interDealerBrokers": [],
-        "others": [],
-        "totals": []
-    }
+def tokenize(text):
+    """
+    Tokenizes the given text. This function considers words, numbers, and symbols as separate tokens.
+    """
+    return text.split()
 
-    def process_line(line):
-        if line.startswith('releaseDate'):
-            data['releaseDate'] = line.split(':', 1)[1].strip()
-        elif line.startswith('title'):
-            data['title'] = line.split(':', 1)[1].strip()
-        elif line.startswith('numDealers'):
-            data['numDealers'] = eval(line.split(':', 1)[1].strip())
-        elif line.startswith('interDealerBrokers'):
-            brokers_data = line.split(':', 1)[1].strip()
-            inter_dealer_brokers = eval(brokers_data)
-            for index, broker in enumerate(inter_dealer_brokers):
-                data['interDealerBrokers'].append(broker)
-                process_inter_dealer_brokers_section(broker, index, file_path)
-        elif line.startswith('others'):
-            data['others'] = eval(line.split(':', 1)[1].strip())
-        elif line.startswith('totals'):
-            data['totals'] = eval(line.split(':', 1)[1].strip())
+def truncate_text(tokens, max_length=511):
+    """
+    Truncate the list of tokens to the maximum length.
+    """
+    return tokens[:max_length]
 
-    try:
-        with open(file_path, 'r') as file:
-            for line in file:
-                process_line(line.strip())
+def process_files(directory, file_extension='.txt'):
+    """
+    Processes all files in the given directory with the specified file extension.
+    Truncates the file content to fit the maximum token length and writes it back.
+    """
+    for filename in os.listdir(directory):
+        if filename.endswith(file_extension):
+            file_path = os.path.join(directory, filename)
 
-        return data
-    except Exception as e:
-        print(f"An error occurred while processing {file_path}: {e}")
+            with open(file_path, 'r') as file:
+                content = file.read()
+            
+            tokens = tokenize(content)
+            truncated_tokens = truncate_text(tokens)
+            truncated_content = ' '.join(truncated_tokens)
 
-# Process the quarterly data file
-file_path_quarterly = 'market_share_quarterly_fixed.txt'
-print(f"Processing file: {file_path_quarterly}")  # Debugging print
-processed_data_quarterly = process_file(file_path_quarterly)
+            with open(file_path, 'w') as file:
+                file.write(truncated_content)
+            print(f"Processed and truncated file: {filename}")
 
-# Process the yearly data file
-file_path_yearly = 'market_share_yearly_fixed.txt'
-print(f"Processing file: {file_path_yearly}")  # Debugging print
-processed_data_yearly = process_file(file_path_yearly)
+# Get the directory where the script is located
+directory = os.path.dirname(os.path.abspath(__file__))
+
+# Process the files in the script's directory
+process_files(directory)

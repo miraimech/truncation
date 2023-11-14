@@ -1,0 +1,7 @@
+# coombine scripts 
+
+# scheduler -> json fix -> json to text -> text truncation -> summarizer -> data_object
+
+# 1: data_object -> api -> server -> frontend -> ux
+
+# 2: AI train -> data_loader -> model -> train -> test -> evaluate -> save -> load -> predict -> evaluate
