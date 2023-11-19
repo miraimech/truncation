@@ -23,40 +23,20 @@ def is_special_file(filename):
     """
     return filename in ['marketshare_quarterly.txt', 'marketshare_yearly.txt']
 
-def content_has_changed(file_path, last_truncated_file_path):
-    """
-    Checks if the content of the file has changed compared to the last truncated file.
-    """
-    if not os.path.exists(last_truncated_file_path):
-        return True
-
-    with open(file_path, 'r') as file:
-        original_content = file.read()
-
-    with open(last_truncated_file_path, 'r') as file:
-        last_truncated_content = file.read()
-
-    return original_content != last_truncated_content
-
 def process_special_file(file_path, filename, directory):
     """
     Processes the special file by repeatedly truncating and saving the remaining content.
     """
-    iteration = 1
-    last_truncated_file_path = os.path.join(directory, f"{filename.rsplit('.', 1)[0]}_truncated_{iteration}.txt")
-
-    if not content_has_changed(file_path, last_truncated_file_path):
-        logging.info("No new data to process for " + filename)
-        return
-
     with open(file_path, 'r') as file:
         content = file.read()
 
     tokens = tokenize(content)
+    iteration = 1
+
     while tokens:
         truncated_tokens, tokens = truncate_text(tokens)
-
         if not truncated_tokens:
+            logging.info("No new data to process for " + filename)
             break
 
         truncated_content = ' '.join(truncated_tokens)
@@ -77,16 +57,19 @@ def process_files(directory, file_extension='.txt'):
     for filename in os.listdir(directory):
         if filename.endswith(file_extension) and not filename.endswith('_truncated.txt'):
             file_path = os.path.join(directory, filename)
-            last_truncated_file_path = os.path.join(directory, filename.rsplit('.', 1)[0] + '_truncated.txt')
 
-            if not content_has_changed(file_path, last_truncated_file_path):
-                logging.info("No new data to process for " + filename)
-                continue
-
-            with open(file_path, 'r') as file:
-                content = file.read()
+            if is_special_file(filename):
+                process_special_file(file_path, filename, directory)
+            else:
+                with open(file_path, 'r') as file:
+                    content = file.read()
                 
                 truncated_tokens, _ = truncate_text(tokenize(content))
+
+                if not truncated_tokens:
+                    logging.info("No new data to process for " + filename)
+                    continue
+
                 truncated_content = ' '.join(truncated_tokens)
                 new_filename = filename.rsplit('.', 1)[0] + '_truncated.txt'
                 new_file_path = os.path.join(directory, new_filename)
