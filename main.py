@@ -48,6 +48,7 @@ def read_identifier(file_path):
     """
     with open(file_path, 'r') as file:
         identifier = file.readline().strip()
+        logging.info(f"Read identifier: {identifier}")  # Debugging statement
     return identifier
 
 def check_and_update_log(log_file, identifier):
@@ -55,34 +56,35 @@ def check_and_update_log(log_file, identifier):
     Checks if the identifier is in the log file and updates the log if not.
     Returns True if the identifier is new, False otherwise.
     """
-    if not os.path.exists(log_file):
+    # Create the log file if it doesn't exist or is empty
+    if not os.path.exists(log_file) or os.stat(log_file).st_size == 0:
         with open(log_file, 'w') as file:
-            pass  # Create an empty log file
+            logging.info(f"Initializing log file {log_file}")
+            file.write('')  # Create an empty or reset the log file
 
     with open(log_file, 'r+') as file:
         processed_ids = [line.strip() for line in file]
         if identifier in processed_ids:
+            logging.info(f"Identifier '{identifier}' found in log. Skipping.")
             return False
         else:
+            logging.info(f"Adding new identifier '{identifier}' to log.")
             file.write(identifier + '\n')
             return True
 
-def process_special_file(file_path, filename, directory, log_file):
+def process_special_file(file_path, filename, directory):
     """
     Processes the special file by repeatedly truncating and saving the remaining content.
-    Only processes new data based on the identifier.
+    Only processes new data based on content comparison.
     """
-    identifier = read_identifier(file_path)
-    if not check_and_update_log(log_file, identifier):
-        logging.info(f"Data already processed for {filename}")
-        return
-
     with open(file_path, 'r') as file:
         content = file.read()
 
+    # Extract the base filename for creating new truncated files.
     base_filename = filename.split('.')[0]
-    last_truncated_file = get_last_truncated_file(directory, base_filename)
 
+    # Check if there is an existing truncated file. If so, compare its content.
+    last_truncated_file = get_last_truncated_file(directory, base_filename)
     if last_truncated_file:
         with open(os.path.join(directory, last_truncated_file), 'r') as file:
             last_content = file.read()
@@ -90,6 +92,7 @@ def process_special_file(file_path, filename, directory, log_file):
                 logging.info(f"No new data to process for {filename}")
                 return
 
+    # Tokenize the content and process it.
     tokens = tokenize(content)
     iteration = 1
     while tokens:
@@ -107,17 +110,18 @@ def process_special_file(file_path, filename, directory, log_file):
 
         iteration += 1
 
-def process_files(directory, file_extension='.txt', log_file='processed_log.txt'):
+def process_files(directory, file_extension='.txt'):
     """
     Processes all files in the given directory with the specified file extension.
+    Avoids files that have already been truncated.
     """
     for filename in os.listdir(directory):
-        if filename.endswith(file_extension) and not filename.endswith('_truncated.txt') and not is_special_file(filename):
+        if filename.endswith('_truncated.txt'):
+            continue  # Skip already truncated files
+
+        if filename.endswith(file_extension) and is_special_file(filename):
             file_path = os.path.join(directory, filename)
-            process_special_file(file_path, filename, directory, log_file)
-        elif is_special_file(filename):
-            file_path = os.path.join(directory, filename)
-            process_special_file(file_path, filename, directory, log_file)
+            process_special_file(file_path, filename, directory)
 
 # Get the directory where the script is located
 directory = os.path.dirname(os.path.abspath(__file__))
