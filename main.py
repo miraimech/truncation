@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import logging
+import nltk
 
 # Setup basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -18,13 +19,24 @@ def truncate_text(tokens, max_length=511):
     """
     if len(tokens) <= max_length:
         return tokens, []
-    else:
-        # Find a suitable split point
-        for i in range(max_length, 0, -1):
-            if tokens[i].endswith(('.', '!', '?')):
-                return tokens[:i + 1], tokens[i + 1:]
-        return tokens[:max_length], tokens[max_length:]
 
+    # Convert tokens back to text for sentence tokenization
+    text = ' '.join(tokens)
+    sentences = nltk.tokenize.sent_tokenize(text)
+    truncated_text = ''
+    remaining_text = text
+
+    for sentence in sentences:
+        if len(truncated_text) + len(sentence) <= max_length:
+            truncated_text += sentence + ' '
+            remaining_text = remaining_text[len(sentence) + 1:]  # +1 for the space
+        else:
+            break
+
+    # Retokenize the remaining text
+    remaining_tokens = tokenize(remaining_text)
+
+    return tokenize(truncated_text), remaining_tokens
 
 def is_data_file(filename):
     """
