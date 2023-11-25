@@ -40,36 +40,6 @@ def get_last_truncated_file(directory, base_filename):
                 continue
     return os.path.join(directory, last_file) if last_file else None
 
-def read_identifier(file_path):
-    """
-    Reads the identifier from the first line of the file.
-    Adjust this function according to where the identifier is located in your file.
-    """
-    with open(file_path, 'r') as file:
-        identifier = file.readline().strip()
-        logging.info(f"Read identifier: {identifier}")
-    return identifier
-
-def check_and_update_log(log_file, identifier):
-    """
-    Checks if the identifier is in the log file and updates the log if not.
-    Returns True if the identifier is new, False otherwise.
-    """
-    if not os.path.exists(log_file) or os.stat(log_file).st_size == 0:
-        with open(log_file, 'w') as file:
-            logging.info(f"Initializing log file {log_file}")
-            file.write('')
-
-    with open(log_file, 'r+') as file:
-        processed_ids = [line.strip() for line in file]
-        if identifier in processed_ids:
-            logging.info(f"Identifier '{identifier}' found in log. Skipping.")
-            return False
-        else:
-            logging.info(f"Adding new identifier '{identifier}' to log.")
-            file.write(identifier + '\n')
-            return True
-
 def process_file(file_path, filename, directory):
     """
     Processes the file by repeatedly truncating and saving the remaining content.
@@ -77,7 +47,7 @@ def process_file(file_path, filename, directory):
     with open(file_path, 'r') as file:
         content = file.read()
 
-    base_filename = filename.split('.')[0]
+    base_filename = filename.replace('_data.txt', '')
 
     last_truncated_file = get_last_truncated_file(directory, base_filename)
     if last_truncated_file:
@@ -109,7 +79,7 @@ def process_files(directory, file_extension='.txt'):
     Processes all files in the given directory that end with '_data.txt'.
     """
     for filename in os.listdir(directory):
-        if filename.endswith('_truncated.txt'):
+        if '_truncated_' in filename:
             continue  # Skip already truncated files
 
         if is_data_file(filename):
