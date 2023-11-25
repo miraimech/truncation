@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import logging
 
 # Setup basic logging
@@ -9,13 +10,21 @@ def tokenize(text):
     """
     Tokenizes the given text. This function considers words, numbers, and symbols as separate tokens.
     """
-    return text.split()
+    return re.findall(r'\b\w+\b', text)
 
 def truncate_text(tokens, max_length=511):
     """
-    Truncate the list of tokens to the maximum length.
+    Truncate the list of tokens to the maximum length, trying to avoid breaking sentences.
     """
-    return tokens[:max_length], tokens[max_length:]
+    if len(tokens) <= max_length:
+        return tokens, []
+    else:
+        # Find a suitable split point
+        for i in range(max_length, 0, -1):
+            if tokens[i].endswith(('.', '!', '?')):
+                return tokens[:i + 1], tokens[i + 1:]
+        return tokens[:max_length], tokens[max_length:]
+
 
 def is_data_file(filename):
     """
@@ -40,25 +49,17 @@ def get_last_truncated_file(directory, base_filename):
                 continue
     return os.path.join(directory, last_file) if last_file else None
 
-def process_file(file_path, filename, directory):
+def process_file(file_path, filename, directory, file_counters):
     """
     Processes the file by repeatedly truncating and saving the remaining content.
     """
+    base_filename = filename.replace('_data.txt', '')
+    iteration = file_counters.get(base_filename, 1)
+
     with open(file_path, 'r') as file:
         content = file.read()
 
-    base_filename = filename.replace('_data.txt', '')
-
-    last_truncated_file = get_last_truncated_file(directory, base_filename)
-    if last_truncated_file:
-        with open(os.path.join(directory, last_truncated_file), 'r') as file:
-            last_content = file.read()
-            if content == last_content:
-                logging.info(f"No new data to process for {filename}")
-                return
-
     tokens = tokenize(content)
-    iteration = 1
     while tokens:
         truncated_tokens, tokens = truncate_text(tokens)
         if not truncated_tokens:
@@ -74,17 +75,21 @@ def process_file(file_path, filename, directory):
 
         iteration += 1
 
+    # Update the counter for the base filename
+    file_counters[base_filename] = iteration
+
 def process_files(directory, file_extension='.txt'):
     """
     Processes all files in the given directory that end with '_data.txt'.
     """
+    file_counters = {}
     for filename in os.listdir(directory):
         if '_truncated_' in filename:
             continue  # Skip already truncated files
 
         if is_data_file(filename):
             file_path = os.path.join(directory, filename)
-            process_file(file_path, filename, directory)
+            process_file(file_path, filename, directory, file_counters)
 
 # Get the directory where the script is located
 directory = os.path.dirname(os.path.abspath(__file__))
