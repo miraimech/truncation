@@ -4,6 +4,9 @@ import re
 import logging
 import nltk
 
+# Download necessary NLTK data
+nltk.download('punkt')
+
 # Setup basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -15,28 +18,21 @@ def tokenize(text):
 
 def truncate_text(tokens, max_length=511):
     """
-    Truncate the list of tokens to the maximum length, trying to avoid breaking sentences.
+    Truncate the list of tokens to the maximum length.
     """
+    logging.info(f"Truncating text with {len(tokens)} tokens")
+
     if len(tokens) <= max_length:
         return tokens, []
 
-    # Convert tokens back to text for sentence tokenization
-    text = ' '.join(tokens)
-    sentences = nltk.tokenize.sent_tokenize(text)
-    truncated_text = ''
-    remaining_text = text
+    # Truncate tokens to the maximum length
+    truncated_tokens = tokens[:max_length]
+    remaining_tokens = tokens[max_length:]
 
-    for sentence in sentences:
-        if len(truncated_text) + len(sentence) <= max_length:
-            truncated_text += sentence + ' '
-            remaining_text = remaining_text[len(sentence) + 1:]  # +1 for the space
-        else:
-            break
+    logging.info(f"Truncated to {len(truncated_tokens)} tokens, {len(remaining_tokens)} tokens remaining")
 
-    # Retokenize the remaining text
-    remaining_tokens = tokenize(remaining_text)
+    return truncated_tokens, remaining_tokens
 
-    return tokenize(truncated_text), remaining_tokens
 
 def is_data_file(filename):
     """
@@ -62,9 +58,8 @@ def get_last_truncated_file(directory, base_filename):
     return os.path.join(directory, last_file) if last_file else None
 
 def process_file(file_path, filename, directory, file_counters):
-    """
-    Processes the file by repeatedly truncating and saving the remaining content.
-    """
+    logging.info(f"Starting to process file: {filename}")
+
     base_filename = filename.replace('_data.txt', '')
     iteration = file_counters.get(base_filename, 1)
 
@@ -72,9 +67,14 @@ def process_file(file_path, filename, directory, file_counters):
         content = file.read()
 
     tokens = tokenize(content)
+    logging.info(f"Tokenized content into {len(tokens)} tokens")
+
     while tokens:
         truncated_tokens, tokens = truncate_text(tokens)
+        logging.info(f"Truncated to {len(truncated_tokens)} tokens, {len(tokens)} tokens remaining")
+
         if not truncated_tokens:
+            logging.info("No truncated tokens, breaking out of loop")
             break
 
         truncated_content = ' '.join(truncated_tokens)
@@ -94,14 +94,22 @@ def process_files(directory, file_extension='.txt'):
     """
     Processes all files in the given directory that end with '_data.txt'.
     """
+    logging.info(f"Processing files in directory: {directory}")
+
     file_counters = {}
     for filename in os.listdir(directory):
+        logging.info(f"Found file: {filename}")
+
         if '_truncated_' in filename:
+            logging.info(f"Skipping already truncated file: {filename}")
             continue  # Skip already truncated files
 
         if is_data_file(filename):
+            logging.info(f"Processing data file: {filename}")
             file_path = os.path.join(directory, filename)
             process_file(file_path, filename, directory, file_counters)
+        else:
+            logging.info(f"Skipping non-data file: {filename}")
 
 # Get the directory where the script is located
 directory = os.path.dirname(os.path.abspath(__file__))
