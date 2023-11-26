@@ -57,10 +57,14 @@ def process_file(file_path, filename, directory):
     base_filename = filename.replace('_data.txt', '')
     json_data = read_json(file_path)
 
+    # Adjusted to handle both quarterly and yearly data
     if 'ytd' in json_data['pd']['marketshare']:
         data_to_group = json_data['pd']['marketshare']['ytd']['interDealerBrokers']
-    else:  # For quarterly data
+    elif 'quarterly' in json_data['pd']['marketshare']:
         data_to_group = json_data['pd']['marketshare']['quarterly']['interDealerBrokers']
+    else:
+        logging.error("Unexpected data format. Exiting.")
+        return
 
     grouped_data = group_by_security_type(data_to_group)
     write_to_files(grouped_data, directory, base_filename)
