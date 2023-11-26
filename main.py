@@ -1,79 +1,55 @@
-import os
-import re
 import json
-import nltk
+import os
 import logging
-from collections import defaultdict
-
-# Download necessary NLTK data
-nltk.download('punkt')
 
 # Setup basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def tokenize(text):
-    return re.findall(r'\b\w+\b', text)
-
-def truncate_text(tokens, max_length=511):
-    logging.info(f"Truncating text with {len(tokens)} tokens")
-    if len(tokens) <= max_length:
-        return tokens, []
-    truncated_tokens = tokens[:max_length]
-    remaining_tokens = tokens[max_length:]
-    logging.info(f"Truncated to {len(truncated_tokens)} tokens, {len(remaining_tokens)} tokens remaining")
-    return truncated_tokens, remaining_tokens
-
-def is_data_file(filename):
-    return filename.endswith('_data.txt')
 
 def read_json(file_path):
     with open(file_path, 'r') as file:
         return json.load(file)
 
-def group_by_security_type(data):
-    grouped_data = defaultdict(list)
-    for entry in data:
-        security_type = entry['securityType']
-        grouped_data[security_type].append(entry)
-    return grouped_data
-
-def write_to_files(grouped_data, directory, base_filename):
-    for security_type, entries in grouped_data.items():
-        content = json.dumps(entries, indent=4)
-        tokens = tokenize(content)
-        chunk_number = 1
-        while tokens:
-            truncated_tokens, tokens = truncate_text(tokens)
-            truncated_content = ' '.join(truncated_tokens)
-            new_filename = f"{base_filename}_truncated_{security_type.replace(' ', '_').replace('.', '').lower()}_chunk_{chunk_number}.txt"
-            new_file_path = os.path.join(directory, new_filename)
-            with open(new_file_path, 'w') as file:
-                file.write(truncated_content)
-            logging.info(f"Processed and created truncated file: {new_filename}")
-            chunk_number += 1
+def write_chunk(directory, base_filename, key_value, chunk_data, chunk_number):
+    new_filename = f"{base_filename}_{key_value.replace(' ', '_').lower()}_chunk_{chunk_number}.txt"
+    new_file_path = os.path.join(directory, new_filename)
+    with open(new_file_path, 'w') as file:
+        file.write(json.dumps(chunk_data, indent=4))
+    logging.info(f"Processed and created file: {new_filename}")
 
 def process_file(file_path, filename, directory):
     logging.info(f"Starting to process file: {filename}")
     base_filename = filename.replace('_data.txt', '')
     json_data = read_json(file_path)
 
-    # Adjusted to handle both quarterly and yearly data
-    if 'ytd' in json_data['pd']['marketshare']:
-        data_to_group = json_data['pd']['marketshare']['ytd']['interDealerBrokers']
-    elif 'quarterly' in json_data['pd']['marketshare']:
-        data_to_group = json_data['pd']['marketshare']['quarterly']['interDealerBrokers']
-    else:
-        logging.error("Unexpected data format. Exiting.")
-        return
+    marketshare_data = json_data['pd']['marketshare']
+    data_to_group = marketshare_data.get('ytd', marketshare_data.get('quarterly', {})).get('interDealerBrokers', [])
 
-    grouped_data = group_by_security_type(data_to_group)
-    write_to_files(grouped_data, directory, base_filename)
+    current_key_value = None
+    current_chunk = []
+    chunk_number = 1
+
+    for entry in data_to_group:
+        if entry:  # Ensure entry is not empty
+            first_key = next(iter(entry))
+            key_value = entry[first_key]
+
+            if key_value != current_key_value:
+                if current_chunk:
+                    write_chunk(directory, base_filename, current_key_value, current_chunk, chunk_number)
+                    chunk_number += 1
+                current_key_value = key_value
+                current_chunk = [entry]
+            else:
+                current_chunk.append(entry)
+
+    if current_chunk:
+        write_chunk(directory, base_filename, current_key_value, current_chunk, chunk_number)
 
 def process_files(directory, file_extension='.txt'):
     logging.info(f"Processing files in directory: {directory}")
     for filename in os.listdir(directory):
         logging.info(f"Found file: {filename}")
-        if '_truncated_' in filename or not is_data_file(filename):
+        if '_truncated_' in filename or not filename.endswith(file_extension):
             logging.info(f"Skipping file: {filename}")
             continue
         file_path = os.path.join(directory, filename)
