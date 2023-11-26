@@ -36,11 +36,17 @@ def process_file(file_path, filename, directory):
             if key_value != current_key_value:
                 if current_chunk:
                     write_chunk(directory, base_filename, current_key_value, current_chunk, chunk_number)
-                    chunk_number += 1
                 current_key_value = key_value
                 current_chunk = [entry]
+                chunk_number = 1
             else:
-                current_chunk.append(entry)
+                # Check if current_chunk will exceed character limit, if so, start a new chunk
+                if len(json.dumps(current_chunk + [entry], indent=4)) > 511:
+                    write_chunk(directory, base_filename, key_value, current_chunk, chunk_number)
+                    current_chunk = [entry]
+                    chunk_number += 1
+                else:
+                    current_chunk.append(entry)
 
     if current_chunk:
         write_chunk(directory, base_filename, current_key_value, current_chunk, chunk_number)
