@@ -1,0 +1,74 @@
+{
+    "repo": {
+        "operations": [
+            {
+                "operationId": "RP 112723 1",
+                "auctionStatus": "Results",
+                "operationDate": "2023-11-27",
+                "settlementDate": "2023-11-27",
+                "maturityDate": "2023-11-28",
+                "operationType": "Reverse Repo",
+                "operationMethod": "Fixed Rate",
+                "settlementType": "Same Day",
+                "termCalenderDays": 1,
+                "term": "Overnight",
+                "releaseTime": "12:45",
+                "closeTime": "13:15",
+                "note": "",
+                "lastUpdated": "2023-11-27 13:15:53",
+                "participatingCpty": 92,
+                "acceptedCpty": 92,
+                "totalAmtSubmitted": 867220000000,
+                "totalAmtAccepted": 867220000000,
+                "details": [
+                    {
+                        "securityType": "Treasury",
+                        "amtSubmitted": 867220000000,
+                        "amtAccepted": 867220000000,
+                        "percentOfferingRate": 5.3,
+                        "percentAwardRate": 5.3
+                    }
+                ]
+            },
+            {
+                "operationId": "RP 112723 3",
+                "auctionStatus": "Results",
+                "operationDate": "2023-11-27",
+                "settlementDate": "2023-11-27",
+                "maturityDate": "2023-11-28",
+                "operationType": "Repo",
+                "operationMethod": "Multiple Price",
+                "settlementType": "Same Day",
+                "termCalenderDays": 1,
+                "term": "Overnight",
+                "releaseTime": "13:30",
+                "closeTime": "13:45",
+                "note": "",
+                "lastUpdated": "2023-11-27 13:45:51",
+                "operationLimit": 500000000000,
+                "totalAmtSubmitted": 0,
+                "totalAmtAccepted": 0,
+                "details": [
+                    {
+                        "securityType": "Treasury",
+                        "amtSubmitted": 0,
+                        "amtAccepted": 0,
+                        "minimumBidRate": 5.5
+                    },
+                    {
+                        "securityType": "Agency",
+                        "amtSubmitted": 0,
+                        "amtAccepted": 0,
+                        "minimumBidRate": 5.5
+                    },
+                    {
+                        "securityType": "Mortgage-Backed",
+                        "amtSubmitted": 0,
+                        "amtAccepted": 0,
+                        "minimumBidRate": 5.5
+                    }
+                ]
+            }
+        ]
+    }
+}

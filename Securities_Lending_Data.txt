@@ -1,0 +1,20 @@
+{
+    "seclending": {
+        "operations": [
+            {
+                "operationId": "SL 112723 1",
+                "auctionStatus": "Results",
+                "operationType": "Securities Lending",
+                "operationDate": "2023-11-27",
+                "settlementDate": "2023-11-27",
+                "maturityDate": "2023-11-28",
+                "releaseTime": "12:00",
+                "closeTime": "12:15",
+                "note": "",
+                "lastUpdated": "2023-11-27 12:16:44",
+                "totalParAmtSubmitted": 34023000000,
+                "totalParAmtAccepted": 33185000000
+            }
+        ]
+    }
+}

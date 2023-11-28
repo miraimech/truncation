@@ -1,0 +1,70 @@
+{
+    "refRates": [
+        {
+            "effectiveDate": "2023-11-27",
+            "type": "SOFRAI",
+            "average30day": 5.33004,
+            "average90day": 5.34572,
+            "average180day": 5.29712,
+            "index": 1.10934209,
+            "revisionIndicator": ""
+        },
+        {
+            "effectiveDate": "2023-11-24",
+            "type": "EFFR",
+            "percentRate": 5.33,
+            "percentPercentile1": 5.3,
+            "percentPercentile25": 5.32,
+            "percentPercentile75": 5.33,
+            "percentPercentile99": 5.5,
+            "targetRateFrom": 5.25,
+            "targetRateTo": 5.5,
+            "volumeInBillions": 101,
+            "revisionIndicator": ""
+        },
+        {
+            "effectiveDate": "2023-11-24",
+            "type": "OBFR",
+            "percentRate": 5.32,
+            "percentPercentile1": 5.25,
+            "percentPercentile25": 5.31,
+            "percentPercentile75": 5.33,
+            "percentPercentile99": 5.4,
+            "volumeInBillions": 252,
+            "revisionIndicator": ""
+        },
+        {
+            "effectiveDate": "2023-11-24",
+            "type": "TGCR",
+            "percentRate": 5.3,
+            "percentPercentile1": 5.25,
+            "percentPercentile25": 5.3,
+            "percentPercentile75": 5.31,
+            "percentPercentile99": 5.36,
+            "volumeInBillions": 577,
+            "revisionIndicator": ""
+        },
+        {
+            "effectiveDate": "2023-11-24",
+            "type": "BGCR",
+            "percentRate": 5.3,
+            "percentPercentile1": 5.25,
+            "percentPercentile25": 5.3,
+            "percentPercentile75": 5.31,
+            "percentPercentile99": 5.39,
+            "volumeInBillions": 588,
+            "revisionIndicator": ""
+        },
+        {
+            "effectiveDate": "2023-11-24",
+            "type": "SOFR",
+            "percentRate": 5.32,
+            "percentPercentile1": 5.27,
+            "percentPercentile25": 5.3,
+            "percentPercentile75": 5.39,
+            "percentPercentile99": 5.42,
+            "volumeInBillions": 1521,
+            "revisionIndicator": ""
+        }
+    ]
+}
